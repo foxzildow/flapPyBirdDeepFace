@@ -5,6 +5,7 @@ import sys
 import pygame
 from pygame.locals import *
 
+# face_detection begin
 from statistics import mode
 
 import cv2
@@ -18,8 +19,6 @@ from utils.inference import draw_bounding_box
 from utils.inference import apply_offsets
 from utils.inference import load_detection_model
 from utils.preprocessor import preprocess_input
-
-#Face_classification_config
 
 # parameters for loading data and images
 detection_model_path = './trained_models/detection_models/haarcascade_frontalface_default.xml'
@@ -42,26 +41,20 @@ emotion_window = []
 
 # starting video streaming
 cv2.namedWindow('window_frame')
-#Insercao do endereco para conectar na camera do DroidCam
+#IP utilizado para DROIDCAM, caso utilizar webcam trocar para 0
 video_capture = cv2.VideoCapture('http://192.168.0.101:4747/mjpegfeed?320x240')
 if video_capture.isOpened():
-    print("CAMERA OK")
-    # bgr_image = video_capture.read()[1]
-    # gray_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2GRAY)
-    # rgb_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
-    # bgr_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
-    # cv2.imshow('window_frame', bgr_image)
+    print("CAM OK")
 else:
-    print("CAMERA OFF")
+    print("CAM OFF")
+# face_detection end
 
-#game_config
 FPS = 30
 SCREENWIDTH  = 288
 SCREENHEIGHT = 512
 # amount by which base can maximum shift to left
-PIPEGAPSIZE = 100 # gap between upper and lower part of pipe
-BASEY = SCREENHEIGHT * 0.79
-
+PIPEGAPSIZE  = 100 # gap between upper and lower part of pipe
+BASEY        = SCREENHEIGHT * 0.79
 # image, sound and hitmask  dicts
 IMAGES, SOUNDS, HITMASKS = {}, {}, {}
 
@@ -208,6 +201,11 @@ def showWelcomeAnimation():
     playerShmVals = {'val': 0, 'dir': 1}
 
     while True:
+        # face_detection begin
+
+        # face_detection end
+
+
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 pygame.quit()
@@ -276,10 +274,10 @@ def mainGame(movementInfo):
 
 
     while True:
-        #face detection begin
+        # face_detection begin
         bgr_image = video_capture.read()[1]
         gray_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2GRAY)
-        # rgb_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
+        rgb_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
         faces = detect_faces(face_detection, gray_image)
 
         for face_coordinates in faces:
@@ -295,19 +293,18 @@ def mainGame(movementInfo):
             gray_face = np.expand_dims(gray_face, 0)
             gray_face = np.expand_dims(gray_face, -1)
             emotion_prediction = emotion_classifier.predict(gray_face)
-            # emotion_probability = np.max(emotion_prediction)
+            emotion_probability = np.max(emotion_prediction)
             emotion_label_arg = np.argmax(emotion_prediction)
             emotion_text = emotion_labels[emotion_label_arg]
-            # emotion_window.append(emotion_text)
-            #
-            # if len(emotion_window) > frame_window:
-            #     emotion_window.pop(0)
-            # try:
-            #     emotion_mode = mode(emotion_window)
-            # except:
-            #     continue
+            emotion_window.append(emotion_text)
 
-            print(emotion_text)
+            if len(emotion_window) > frame_window:
+                emotion_window.pop(0)
+            try:
+                emotion_mode = mode(emotion_window)
+            except:
+                continue
+
             if emotion_text == 'angry':
                 # color = emotion_probability * np.asarray((255, 0, 0))
                 pipeVelX = -2
@@ -322,16 +319,21 @@ def mainGame(movementInfo):
                 pipeVelX = -4
             else:
                 # color = emotion_probability * np.asarray((0, 255, 0))
-                print("No emotion")
                 pipeVelX = -4
 
-            # color = color.astype(int)
-            # color = color.tolist()
-            #
-            # draw_bounding_box(face_coordinates, rgb_image, color)
-            # draw_text(face_coordinates, rgb_image, emotion_mode,
-            #           color, 0, -45, 1, 1)
-        #face detection end
+            color = color.astype(int)
+            color = color.tolist()
+
+            draw_bounding_box(face_coordinates, rgb_image, color)
+            draw_text(face_coordinates, rgb_image, emotion_mode,
+                      color, 0, -45, 1, 1)
+
+        bgr_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
+        cv2.imshow('window_frame', bgr_image)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        # face_detection end
+
 
         for event in pygame.event.get():
             # teste para alterar velocidade do jogo em real-time
@@ -395,6 +397,7 @@ def mainGame(movementInfo):
             lPipe['x'] += pipeVelX
 
         # add new pipe when first pipe is about to touch left of screen
+        print (upperPipes[0]['x'])
         if 0 < upperPipes[0]['x'] < ((pipeVelX * -1) + 1):
             newPipe = getRandomPipe()
             upperPipes.append(newPipe[0])
