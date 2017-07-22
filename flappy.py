@@ -46,11 +46,11 @@ cv2.namedWindow('window_frame')
 video_capture = cv2.VideoCapture('http://192.168.0.101:4747/mjpegfeed?320x240')
 if video_capture.isOpened():
     print("CAMERA OK")
-    # bgr_image = video_capture.read()[1]
-    # gray_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2GRAY)
-    # rgb_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
-    # bgr_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
-    # cv2.imshow('window_frame', bgr_image)
+    bgr_image = video_capture.read()[1]
+    gray_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2GRAY)
+    rgb_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
+    bgr_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
+    cv2.imshow('window_frame', bgr_image)
 else:
     print("CAMERA OFF")
 
