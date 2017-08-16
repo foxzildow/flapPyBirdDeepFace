@@ -3,6 +3,8 @@ Flappy Bird with dynamic difficult based on face recognition
 
 Projeto baseado no conceito de dificuldade dinâmica baseado em reconhecimento facial do usuário.
 
+Pôster construído está disponibilizado para conhecimento.
+
 # Requerimentos #
 
 1. Python 3.5
